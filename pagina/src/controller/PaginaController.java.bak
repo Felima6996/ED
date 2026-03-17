@@ -1,0 +1,58 @@
+package controller;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.ArrayList;
+
+public class PaginaController {
+	private static final Pattern urlPattern = Pattern.compile(
+	"(?:^|[\\W]) ((htlf)tp(s?):\\/\\/|www\\.)"
+			+ "(([\\w\\-]+\\.){1,}?([\\w\\-.~]+\\/?)*"
+			+ "[\\p{alnum}.,% =?&#\\-+()\\[\\]\\*$~@:/{};']*)",
+		Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
+	private String dominio;
+	private ArrayList<String> visitei;
+	
+	public PaginaController (String dominio) {
+		super();
+		this.dominio = dominio;
+		this.visitei = new ArrayList<String>();
+	}
+	
+	private String pagina (String url)
+				throws IOException, InterruptedException {
+		System.out.println("[DOWNLOAD >>] " + url);
+		HttpClient client = HttpClient.newHttpClient();
+		HttpRequest request = HttpRequest.newBuilder().uri (URI.create( url )).GET().build();
+		HttpResponse<String> response =
+				client.send(request, HttpResponse.BodyHandlers.ofString());
+			return response.body();
+	}
+	
+	public void links ( String url)
+				throws IOException, InterruptedException{
+		if(this.visitei.contains(url) || url.indexOf( this.dominio) < 0 ){
+			return;
+		}
+		this.visitei.add(url);
+		String body = pagina(url);
+		
+		Matcher matcher = urlPattern.matcher(body);
+		while (matcher.find()) {
+			int matchStart = matcher.start(1);
+			int matchEnd = matcher.end();
+			String sub_url = body.substring ( matchStart, matchEnd );
+			if (sub_url.endsWith(".html") || sub_url.endsWith(".html")
+					|| sub_url.endsWith("/") ) {
+				System.out.println( "[+] " + sub_url );
+				links( sub_url);
+			}
+		}
+	}
+}
+			

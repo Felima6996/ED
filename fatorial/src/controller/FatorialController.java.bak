@@ -1,0 +1,13 @@
+package controller;
+
+public class FatorialController {
+	public FatorialController(){
+		super();
+	}
+	
+	public int Calcular ( int numero ) {
+		if (numero <= 1)
+			return 1;
+		return numero * calcular( --numero );
+	}
+}
